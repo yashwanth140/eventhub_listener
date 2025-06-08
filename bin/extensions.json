@@ -1,0 +1,5 @@
+{
+  "extensions":[
+    { "name": "EventHubs", "typeName":"Microsoft.Azure.WebJobs.EventHubs.EventHubsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventHubs, Version=5.3.0.0, Culture=neutral, PublicKeyToken=014045d636e89289"}
+  ]
+}
