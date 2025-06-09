@@ -1,4 +1,4 @@
-name: Deploy Python Azure Function - kafkaeventblob-func (ZIP Deploy)
+name: Deploy Python Azure Function - kafkaeventblob-func
 
 on:
   push:
@@ -7,50 +7,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      id-token: write
+  build-and-deploy:
+    runs-on: ubuntu-22.04
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: 📦 Install dependencies to .python_packages
         run: |
-          python -m pip install --upgrade pip
-          mkdir -p .python_packages/lib/site-packages
-          pip install -r requirements.txt -t .python_packages/lib/site-packages
+          pip install -r requirements.txt -t .python_packages
 
-      - name: 📂 Prepare package directory
+      - name: 📁 Prepare function app package
         run: |
-          mkdir -p package
-          cp -r .python_packages package/
-          cp -r event_listener package/
-          cp host.json package/
-          cp requirements.txt package/
+          mkdir -p deploy_package/event_listener
+          cp -r event_listener/* deploy_package/event_listener/
+          cp host.json requirements.txt deploy_package/
+          cp -r .python_packages deploy_package/
 
-      - name: 🗜️ Create deployment ZIP
+      - name: 🗜️ Zip the package
         run: |
-          cd package
+          cd deploy_package
           zip -r ../function.zip .
 
       - name: 🔐 Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
       - name: 🚀 Deploy to Azure Function App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'kafkaeventblob-func'
+          app-name: kafkaeventblob-func
           package: function.zip
+          clean: true
