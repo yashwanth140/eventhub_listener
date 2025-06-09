@@ -3,15 +3,22 @@ import os
 import json
 from typing import List
 import azure.functions as func
-from azure.storage.blob import BlobServiceClient, ResourceExistsError
+
+# Debug: Check if azure-storage-blob is importable
+try:
+    from azure.storage.blob import BlobServiceClient, ResourceExistsError
+    logging.warning("✅ Successfully imported BlobServiceClient from azure.storage.blob")
+except ImportError as imp_err:
+    logging.error(f"❌ ImportError: {imp_err}")
+    raise
 
 def main(events: List[func.EventHubEvent]):
-    logging.warning("🚀 Function initialized.")
+    logging.warning("🚀 Azure Function 'event_listener' triggered.")
 
     try:
-        # Load connection string and prepare blob client
         connection_string = os.environ["BLOB_CONNECTION_STRING"]
-        logging.warning("📡 Got blob connection string.")
+        logging.warning("🔐 Blob connection string retrieved.")
+
         container_name = "telemetrydata"
         blob_name = "latest.json"
 
@@ -24,18 +31,10 @@ def main(events: List[func.EventHubEvent]):
                 body = event.get_body().decode('utf-8')
                 logging.warning(f"📩 Event received: {body}")
                 
-                # Optional: parse JSON to validate it's not malformed
-                parsed_json = json.loads(body)
-
-                blob_client.upload_blob(json.dumps(parsed_json), overwrite=True)
-                logging.warning("✅ Blob updated successfully.")
-
-            except json.JSONDecodeError as je:
-                logging.error(f"❌ JSON parsing error: {je}")
-            except ResourceExistsError as re:
-                logging.error(f"⚠️ Blob already exists and cannot be overwritten: {re}")
+                blob_client.upload_blob(body, overwrite=True)
+                logging.warning("✅ Uploaded data to Blob Storage.")
             except Exception as e:
-                logging.error(f"❌ Error processing event: {e}")
+                logging.error(f"❌ Failed to process event: {str(e)}")
 
     except Exception as conn_err:
-        logging.error(f"❌ Blob connection error: {conn_err}")
+        logging.error(f"❌ Blob connection/setup failed: {str(conn_err)}")
