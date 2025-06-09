@@ -15,24 +15,29 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Azure Login
+      - name: 📦 Install dependencies into .python_packages/
+        run: |
+          python -m pip install --upgrade pip
+          mkdir -p .python_packages/lib/site-packages
+          pip install -r requirements.txt --target=.python_packages/lib/site-packages
+
+      - name: 🔐 Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: Deploy to Azure Functions
+      - name: 🚀 Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: 'kafkaeventblob-func'
           package: '.'
-          scm-do-build-during-deployment: true   # 🔥 This installs requirements.txt on Azure
