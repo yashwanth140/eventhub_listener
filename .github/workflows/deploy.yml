@@ -21,6 +21,7 @@ jobs:
 
       - name: 📦 Install dependencies to .python_packages
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt -t .python_packages
 
       - name: 📁 Prepare function app package
@@ -47,4 +48,3 @@ jobs:
         with:
           app-name: kafkaeventblob-func
           package: function.zip
-          clean: true
