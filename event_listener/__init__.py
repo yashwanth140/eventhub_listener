@@ -1,40 +1,40 @@
 import logging
 import os
 import json
-from typing import List
 import azure.functions as func
+from azure.storage.blob import BlobServiceClient, ResourceExistsError
 
-# Debug: Check if azure-storage-blob is importable
-try:
-    from azure.storage.blob import BlobServiceClient, ResourceExistsError
-    logging.warning("✅ Successfully imported BlobServiceClient from azure.storage.blob")
-except ImportError as imp_err:
-    logging.error(f"❌ ImportError: {imp_err}")
-    raise
-
-def main(events: List[func.EventHubEvent]):
-    logging.warning("🚀 Azure Function 'event_listener' triggered.")
-
+def main(event: func.EventHubEvent):
     try:
-        connection_string = os.environ["BLOB_CONNECTION_STRING"]
-        logging.warning("🔐 Blob connection string retrieved.")
+        logging.info("✅ Azure Function triggered by Event Hub event.")
 
-        container_name = "telemetrydata"
+        # Decode event data
+        event_data = event.get_body().decode('utf-8')
+        logging.info(f"📦 Raw Event Data: {event_data}")
+
+        # Parse JSON payload if needed
+        try:
+            data = json.loads(event_data)
+            logging.info(f"🧠 Parsed Event JSON: {data}")
+        except json.JSONDecodeError:
+            data = {"raw_message": event_data}
+            logging.warning("⚠️ Event data is not valid JSON. Storing as raw text.")
+
+        # Get storage connection string from environment
+        conn_str = os.environ.get("AzureWebJobsStorage")
+        if not conn_str:
+            raise ValueError("❌ AzureWebJobsStorage is not set in environment variables.")
+
+        # Connect to blob storage
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        container_name = "telemetrydata"  # Change as needed
         blob_name = "latest.json"
 
-        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-        container_client = blob_service_client.get_container_client(container_name)
-        blob_client = container_client.get_blob_client(blob_name)
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+        blob_client.upload_blob(json.dumps(data), overwrite=True)
 
-        for event in events:
-            try:
-                body = event.get_body().decode('utf-8')
-                logging.warning(f"📩 Event received: {body}")
-                
-                blob_client.upload_blob(body, overwrite=True)
-                logging.warning("✅ Uploaded data to Blob Storage.")
-            except Exception as e:
-                logging.error(f"❌ Failed to process event: {str(e)}")
+        logging.info(f"✅ Successfully wrote event data to blob '{blob_name}' in container '{container_name}'.")
 
-    except Exception as conn_err:
-        logging.error(f"❌ Blob connection/setup failed: {str(conn_err)}")
+    except Exception as e:
+        logging.error(f"❌ Azure Function execution failed: {str(e)}", exc_info=True)
+        raise
