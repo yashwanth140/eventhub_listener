@@ -17,18 +17,32 @@ jobs:
       id-token: write
 
     steps:
-      - name:  Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name:  Login to Azure
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies into current folder
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -t .
+
+      - name: Archive project files
+        run: |
+          zip -r functionapp.zip . -x "*.git*" -x "*__pycache__*" -x "*.venv*" -x "*.python_packages*"
+
+      - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name:  Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: Deploy to Azure Functions
+        uses: azure/functions-action@v1
         with:
           app-name: 'kafkaeventblob-func'
-          package: '.'  # This points to the folder where your function code and requirements.txt live
+          package: 'functionapp.zip'
