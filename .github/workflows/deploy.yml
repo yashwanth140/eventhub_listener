@@ -1,3 +1,4 @@
+#.yml
 name: Deploy Python Azure Function - kafkaeventblob-func (ZIP Deploy)
 
 on:
