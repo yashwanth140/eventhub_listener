@@ -23,15 +23,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 📦 Install dependencies to local folder
+      - name: 📦 Install dependencies into ./package
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -t ./package
-          cp -r event_listener/* ./package
-          cp host.json ./package
-          cp -r .python_packages ./package || true  # in case needed for bundled deps
+          mkdir -p package
+          pip install -r requirements.txt -t package/
+          cp -r event_listener package/
+          cp host.json package/
+          cp requirements.txt package/
 
-      - name: 🗜️ Zip package
+      - name: 🗜️ Create deployment ZIP
         run: |
           cd package
           zip -r ../function.zip .
@@ -43,7 +44,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: 🚀 Deploy via ZIP (manual package)
+      - name: 🚀 Deploy via ZIP
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'kafkaeventblob-func'
