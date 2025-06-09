@@ -11,7 +11,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04  # ← use 20.04 due to cryptography issues
     permissions:
       contents: read
       id-token: write
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Python dependencies (no local package directory)
+      - name: Install Python dependencies (no local package dir)
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -37,7 +37,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: Deploy to Azure Functions with remote build
+      - name: Deploy to Azure Functions with Remote Build
         uses: Azure/functions-action@v1
         with:
           app-name: 'kafkaeventblob-func'
