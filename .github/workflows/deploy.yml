@@ -20,31 +20,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies into current folder
+      - name: Install Python dependencies (no local package directory)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -t .
+          pip install -r requirements.txt
 
-      - name: Archive project files
-        run: |
-          zip -r functionapp.zip . -x "*.git*" -x "*__pycache__*" -x "*.venv*" -x "*.python_packages*"
-
-      - name: Login to Azure
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: Deploy to Azure Functions
+      - name: Deploy to Azure Functions with remote build
         uses: Azure/functions-action@v1
         with:
-            app-name: 'kafkaeventblob-func'
-            package: '.'
-            scm-do-build-during-deployment: true
-
+          app-name: 'kafkaeventblob-func'
+          package: '.'
+          scm-do-build-during-deployment: true
