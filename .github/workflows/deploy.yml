@@ -15,15 +15,15 @@ jobs:
       id-token: write
 
     steps:
-      - name:  Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name:  Setup Python 3.11
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name:  Prepare function app package
+      - name: 📦 Build function package with correct layout
         run: |
           python -m pip install --upgrade pip
           mkdir -p package/event_listener
@@ -33,7 +33,7 @@ jobs:
           cp host.json package/
           cp requirements.txt package/
 
-      - name: 🗜️ Create deployment ZIP
+      - name: 🗜️ Zip it up
         run: |
           cd package
           zip -r ../function.zip .
