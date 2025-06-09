@@ -42,7 +42,9 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
       - name: Deploy to Azure Functions
-        uses: azure/functions-action@v1
+        uses: Azure/functions-action@v1
         with:
-          app-name: 'kafkaeventblob-func'
-          package: 'functionapp.zip'
+            app-name: 'kafkaeventblob-func'
+            package: '.'
+            scm-do-build-during-deployment: true
+
