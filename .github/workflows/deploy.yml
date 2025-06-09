@@ -1,4 +1,4 @@
-name: Deploy Python Azure Function - kafkaeventblob-func
+name: Deploy Python Azure Function - kafkaeventblob-func (ZIP Deploy)
 
 on:
   push:
@@ -23,11 +23,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 📦 Install dependencies into .python_packages/
+      - name: 📦 Install dependencies to local folder
         run: |
           python -m pip install --upgrade pip
-          mkdir -p .python_packages/lib/site-packages
-          pip install -r requirements.txt --target=.python_packages/lib/site-packages
+          pip install -r requirements.txt -t ./package
+          cp -r event_listener/* ./package
+          cp host.json ./package
+          cp -r .python_packages ./package || true  # in case needed for bundled deps
+
+      - name: 🗜️ Zip package
+        run: |
+          cd package
+          zip -r ../function.zip .
 
       - name: 🔐 Azure Login
         uses: azure/login@v2
@@ -36,8 +43,8 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: 🚀 Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: 🚀 Deploy via ZIP (manual package)
+        uses: azure/webapps-deploy@v2
         with:
           app-name: 'kafkaeventblob-func'
-          package: '.'
+          package: function.zip
