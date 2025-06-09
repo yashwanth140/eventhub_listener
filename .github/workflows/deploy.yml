@@ -1,4 +1,4 @@
-name: Deploy Python Azure Function - kafkaeventblob-func (Oryx Build)
+name: Deploy Azure Function with Dependencies
 
 on:
   push:
@@ -23,19 +23,21 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 📦 Verify requirements.txt is found
-        run: ls -l requirements.txt
+      - name: 📦 Install requirements to .python_packages
+        run: |
+          mkdir -p .python_packages/lib/site-packages
+          pip install -r requirements.txt -t .python_packages/lib/site-packages
+          echo "Installed packages into .python_packages"
 
-      - name: 🔐 Azure Login (OIDC)
+      - name: 🔐 Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
-      - name: 🚀 Deploy to Azure Function App using Oryx
-        uses: Azure/functions-action@v1
+      - name: 🚀 Deploy to Azure Function App (Manual ZIP)
+        uses: azure/webapps-deploy@v2
         with:
           app-name: 'kafkaeventblob-func'
           package: '.'
-          scm-do-build-during-deployment: true
