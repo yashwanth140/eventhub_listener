@@ -7,8 +7,8 @@
       "direction": "in",
       "eventHubName": "telemetry-stream",
       "connection": "EVENTHUB_CONNECTION_STRING",
-      "cardinality": "many",
-      "consumerGroup": "$Default"
+      "consumerGroup": "$Default",
+      "cardinality": "many"
     }
   ]
 }

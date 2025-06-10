@@ -8,41 +8,41 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     permissions:
       contents: read
       id-token: write
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies to .python_packages
+      - name: 📦 Install dependencies to .python_packages
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -t .python_packages
+          pip install -r requirements.txt --target=".python_packages"
 
-      - name: Prepare function app package
+      - name: 📁 Prepare function app package
         run: |
           mkdir -p package/event_listener
-          cp event_listener/*.py package/event_listener/
-          cp event_listener/function.json package/event_listener/
+          cp -r .python_packages package/
+          cp -r event_listener/__init__.py package/event_listener/
+          cp -r event_listener/function.json package/event_listener/
           cp host.json package/
           cp requirements.txt package/
-          cp -r .python_packages package/.python_packages
 
-      - name: Zip the package
+      - name: 🗜️ Zip the package
         run: |
           cd package
           zip -r ../function.zip .
 
-      - name: Azure Login
+      - name: 🔐 Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
@@ -52,5 +52,5 @@ jobs:
       - name: 🚀 Deploy to Azure Function App (ZIP)
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'kafkaeventblob-func'
+          app-name: kafkaeventblob-func
           package: function.zip
