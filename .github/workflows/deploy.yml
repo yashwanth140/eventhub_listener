@@ -3,84 +3,50 @@ name: Deploy Python Azure Function - kafkaeventblob-func (ZIP Deploy)
 on:
   push:
     branches:
-      - main # This workflow runs when code is pushed to the 'main' branch
-  workflow_dispatch: # Allows manual triggering of the workflow from GitHub Actions UI
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-22.04 # Using a recent Ubuntu runner
+    runs-on: ubuntu-22.04
 
     permissions:
-      contents: read # Required to checkout the repository code
-      id-token: write # Required for Azure Login using OIDC
+      contents: read
+      id-token: write
 
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v4 # Uses the latest recommended action for checking out code
+        uses: actions/checkout@v4
 
       - name: 🐍 Setup Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11' # Explicitly set Python version
+          python-version: '3.11'
 
       - name: 📦 Build function package with correct layout
         run: |
-          echo "--- Starting build process for function package ---"
-          echo "Current directory: $(pwd)"
-          echo "Listing repository root contents:"
-          ls -F
-          
-          echo "Ensuring pip is up-to-date..."
           python -m pip install --upgrade pip
-          
-          echo "Creating 'package/' directory for deployment..."
-          mkdir -p package
-          
-          echo "Installing pip dependencies from requirements.txt into 'package/' directory..."
-          # The -t (target) flag is crucial for Azure Functions' offline dependency resolution.
-          # This should create the .python_packages structure within 'package/'
-          pip install -r requirements.txt -t package/ || { echo "ERROR: pip install failed. Check requirements.txt and logs above."; exit 1; }
-          
-          echo "Copying function code and configuration files into 'package/'..."
-          # Copy the entire event_listener directory, host.json, and requirements.txt
-          # Ensure these paths are correct relative to your repository root as per your structure
-          cp -r event_listener package/ || { echo "ERROR: Failed to copy event_listener. Check path."; exit 1; }
-          cp host.json package/ || { echo "ERROR: Failed to copy host.json. Check path."; exit 1; }
-          cp requirements.txt package/ || { echo "ERROR: Failed to copy requirements.txt. Check path."; exit 1; }
-
-          echo "--- Contents of the 'package/' directory for verification ---"
-          # This command is critical for debugging package layout issues
-          ls -R package/
-          echo "--- End of package/ contents ---"
+          mkdir -p package/event_listener
+          pip install -r requirements.txt -t package/
+          cp event_listener/__init__.py package/event_listener/
+          cp event_listener/function.json package/event_listener/
+          cp host.json package/
+          cp requirements.txt package/
 
       - name: 🗜️ Zip it up
         run: |
-          echo "Creating function.zip from 'package/' directory..."
           cd package
-          zip -r ../function.zip . || { echo "ERROR: Failed to create function.zip."; exit 1; }
-          echo "Successfully created ../function.zip."
-          ls -lh ../function.zip # List the zip file with human-readable size
+          zip -r ../function.zip .
 
       - name: 🔐 Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_21636403468F46249A913B43533FA43E }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B296A24111174C9B9573DD698C3C6AF1 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }} # Verified this matches your earlier provided ID
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9A356912782F43EAACAE2373A78B920E }}
 
       - name: 🚀 Deploy to Azure Function App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'kafkaeventblob-func' # Your Function App name
-          package: function.zip # The path to your created zip file
-          # slot-name: 'production' # Uncomment if you use deployment slots (good practice)
-        env:
-          WEBSITE_RUN_FROM_PACKAGE: 1 # <--- This is the crucial setting for Python ZIP deployments
-          # FUNCTIONS_WORKER_RUNTIME: python # This is usually default for Python apps, but can be explicit
-
-      - name: ✅ Deployment Check (Optional but Recommended)
-        run: |
-          echo "Deployment initiated. Please check the Azure portal for the Function App's status and logs:"
-          echo "  - Azure Function App -> Deployment Center"
-          echo "  - Azure Function App -> Functions -> event_listener -> Monitor (for invocation logs)"
-          echo "If issues persist, check Kudu console: Azure Function App -> Advanced Tools -> Go -> Debug console -> site/wwwroot/.python_packages/lib/site-packages/"
+          app-name: 'kafkaeventblob-func'
+          package: function.zip
