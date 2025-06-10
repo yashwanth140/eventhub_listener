@@ -6,7 +6,7 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient
 
 def main(events: func.EventHubEvent):
-    logging.info("✅ Function triggered with events batch.")
+    logging.info("Function triggered with events batch.")
 
     try:
         connection_string = os.environ["BLOB_CONNECTION_STRING"]
@@ -18,7 +18,7 @@ def main(events: func.EventHubEvent):
         for event in events:
             try:
                 body = event.get_body().decode('utf-8')
-                logging.info(f"📩 Received event: {body}")
+                logging.info(f" Received event: {body}")
 
                 data = json.loads(body)
 
@@ -32,12 +32,12 @@ def main(events: func.EventHubEvent):
                 latest_blob = container_client.get_blob_client("latest.json")
                 latest_blob.upload_blob(json.dumps(data), overwrite=True)
 
-                logging.info(f"✅ Uploaded {blob_name} and updated latest.json")
+                logging.info(f" Uploaded {blob_name} and updated latest.json")
 
             except json.JSONDecodeError as jde:
-                logging.error(f"❌ JSON decode error on: {body} → {str(jde)}")
+                logging.error(f" JSON decode error on: {body} → {str(jde)}")
             except Exception as inner:
-                logging.error(f"❌ Inner error: {str(inner)}")
+                logging.error(f" Inner error: {str(inner)}")
 
     except Exception as outer:
-        logging.error(f"❌ Blob connection/setup error: {str(outer)}")
+        logging.error(f" Blob connection/setup error: {str(outer)}")
