@@ -4,10 +4,10 @@
       "type": "eventHubTrigger",
       "name": "events",
       "direction": "in",
-      "eventHubName": "telemetry-stream",
-      "connection": "EVENTHUB_CONNECTION_STRING",
       "cardinality": "many",
+      "connection": "EVENTHUB_CONNECTION_STRING",
       "consumerGroup": "$Default"
     }
-  ]
+  ],
+  "scriptFile": "__init__.py"
 }
