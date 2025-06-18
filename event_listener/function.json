@@ -6,14 +6,7 @@
       "direction": "in",
       "eventHubName": "telemetry-stream",
       "connection": "EVENTHUB_CONNECTION_STRING",
-      "consumerGroup": "func-consumer"
-    },
-    {
-      "type": "blob",
-      "name": "outputBlob",
-      "direction": "out",
-      "path": "telemetrydata/latest.json",
-      "connection": "BLOB_CONNECTION_STRING"
+      "consumerGroup": "$Default"
     }
   ]
 }
