@@ -9,11 +9,9 @@
   },
   "extensions": {
     "eventHubs": {
-      "batchCheckpointFrequency": 1,
-      "eventProcessorOptions": {
-        "maxBatchSize": 64,
-        "prefetchCount": 256
-      }
+      "maxBatchSize": 64,
+      "prefetchCount": 256,
+      "batchCheckpointFrequency": 1
     }
   }
 }

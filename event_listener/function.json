@@ -1,17 +1,13 @@
 {
-  "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "events",
       "type": "eventHubTrigger",
+      "name": "events",
       "direction": "in",
       "eventHubName": "telemetry-stream",
-      "eventHubNamespace": "kafka-telemetry",
-      "consumerGroup": "$Default",
+      "connection": "EVENTHUB_CONNECTION_STRING",
       "cardinality": "many",
-      "identity": {
-        "type": "SystemAssigned"
-      }
+      "consumerGroup": "$Default"
     }
   ]
 }
