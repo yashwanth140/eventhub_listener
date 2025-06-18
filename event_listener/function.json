@@ -1,10 +1,10 @@
 {
-  "scriptFile": "__init__.py",
   "bindings": [
     {
+      "name": "events",
       "type": "eventHubTrigger",
       "direction": "in",
-      "name": "events",
+      "eventHubName": "telemetry-stream",
       "connection": "EVENTHUB_CONNECTION_STRING",
       "cardinality": "many",
       "consumerGroup": "$Default"
