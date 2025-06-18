@@ -6,9 +6,12 @@
       "type": "eventHubTrigger",
       "direction": "in",
       "eventHubName": "telemetry-stream",
-      "connection": "EVENTHUB_CONNECTION_STRING",
+      "eventHubNamespace": "kafka-telemetry",
       "consumerGroup": "$Default",
-      "cardinality": "many"
+      "cardinality": "many",
+      "identity": {
+        "type": "SystemAssigned"
+      }
     }
   ]
 }
