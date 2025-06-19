@@ -37,7 +37,7 @@ def main(event: func.EventHubEvent):
             overwrite=True,
             content_settings=ContentSettings(content_type="application/json")
         )
-
+        # upload blob 
         container_client.upload_blob(
             name="latest.json",
             data=json.dumps(data),
