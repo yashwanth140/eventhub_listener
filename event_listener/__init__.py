@@ -6,7 +6,7 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
 def main(event: func.EventHubEvent):
-    logging.info("Azure Function triggered with one event.")
+    logging.info("Function triggered with a single event.")
 
     try:
         connection_string = os.getenv("BLOB_CONNECTION_STRING")
@@ -25,7 +25,7 @@ def main(event: func.EventHubEvent):
         timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")[:-3]
         blob_name = f"event_{timestamp}.json"
 
-        # Upload event file
+        # Upload individual event
         container_client.upload_blob(
             name=blob_name,
             data=json.dumps(data),
@@ -44,4 +44,4 @@ def main(event: func.EventHubEvent):
         logging.info("Uploaded %s and updated latest.json", blob_name)
 
     except Exception as e:
-        logging.error("Function failure: %s", str(e))
+        logging.error("Function error: %s", str(e))
