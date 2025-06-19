@@ -5,11 +5,8 @@ from datetime import datetime
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
-from typing import List
-from azure.functions import EventHubEvent 
-
-def main(events: List[EventHubEvent]): 
-    logging.info("Function triggered with a batch of events.")
+def main(event: func.EventHubEvent):  # Single EventHubEvent
+    logging.info("Function triggered with an event.")
 
     try:
         connection_string = os.getenv("BLOB_CONNECTION_STRING")
@@ -21,33 +18,30 @@ def main(events: List[EventHubEvent]):
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
         container_client = blob_service_client.get_container_client(container_name)
 
-        for event in events:
-            try:
-                body = event.get_body().decode("utf-8")
-                logging.info("Processing event: %s", body)
+        body = event.get_body().decode("utf-8")
+        logging.info("Processing event: %s", body)
 
-                data = json.loads(body)
-                timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")[:-3]
-                blob_name = f"event_{timestamp}.json"
+        data = json.loads(body)
+        timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")[:-3]
+        blob_name = f"event_{timestamp}.json"
 
-                container_client.upload_blob(
-                    name=blob_name,
-                    data=json.dumps(data),
-                    overwrite=True,
-                    content_settings=ContentSettings(content_type="application/json")
-                )
+        # Upload as new event
+        container_client.upload_blob(
+            name=blob_name,
+            data=json.dumps(data),
+            overwrite=True,
+            content_settings=ContentSettings(content_type="application/json")
+        )
 
-                container_client.upload_blob(
-                    name="latest.json",
-                    data=json.dumps(data),
-                    overwrite=True,
-                    content_settings=ContentSettings(content_type="application/json")
-                )
+        # Overwrite latest.json
+        container_client.upload_blob(
+            name="latest.json",
+            data=json.dumps(data),
+            overwrite=True,
+            content_settings=ContentSettings(content_type="application/json")
+        )
 
-                logging.info("Uploaded %s and updated latest.json", blob_name)
-
-            except Exception as e:
-                logging.error("Error processing individual event: %s", str(e))
+        logging.info("Uploaded %s and updated latest.json", blob_name)
 
     except Exception as e:
         logging.error("Function-level failure: %s", str(e))
