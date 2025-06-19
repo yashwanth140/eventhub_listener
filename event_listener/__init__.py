@@ -14,11 +14,11 @@ def main(event: func.EventHubEvent, outputBlob: func.Out[str]):
 
         data = json.loads(body)
 
-        # Update latest.json via output binding
+        # Write to latest.json using output binding
         outputBlob.set(json.dumps(data))
-        logging.info("✅ latest.json updated via output binding.")
+        logging.info(" latest.json updated.")
 
-        # Upload timestamped version separately
+        # Write full backup file manually
         connection_string = os.getenv("BLOB_CONNECTION_STRING")
         container_name = os.getenv("BLOB_CONTAINER_NAME", "telemetrydata")
 
@@ -34,7 +34,7 @@ def main(event: func.EventHubEvent, outputBlob: func.Out[str]):
             overwrite=True,
             content_settings=ContentSettings(content_type="application/json")
         )
-        logging.info("✅ Uploaded event_%s.json", timestamp)
+        logging.info(f" Uploaded full event: {blob_name}")
 
     except Exception as e:
-        logging.error("❌ Function error: %s", str(e))
+        logging.error(" Function error: %s", str(e))
