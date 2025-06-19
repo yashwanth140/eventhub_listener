@@ -6,7 +6,7 @@
       "direction": "in",
       "eventHubName": "telemetry-stream",
       "connection": "EVENTHUB_CONNECTION_STRING",
-      "consumerGroup": "$Default"
+      "consumerGroup": "func-consumer"
     }
   ],
   "scriptFile": "__init__.py"

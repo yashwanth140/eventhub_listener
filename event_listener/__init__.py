@@ -10,21 +10,27 @@ def main(event: func.EventHubEvent):
 
     try:
         body = event.get_body().decode("utf-8")
-        logging.info("Processing event: %s", body)
+        
+        if not body.strip():
+            logging.warning("Empty event body received. Skipping.")
+            return
 
+        logging.info("Processing event: %s", body)
         data = json.loads(body)
 
-        # Updated env var name to match what's configured
+        # Fetch storage connection and container name from environment
         connection_string = os.getenv("AzureWebJobsBLOB_CONNECTION_STRING")
         container_name = os.getenv("BLOB_CONTAINER_NAME", "telemetrydata")
 
+        # Connect to blob storage
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
         container_client = blob_service_client.get_container_client(container_name)
 
+        # Generate timestamped filename
         timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
         blob_name = f"event_{timestamp}.json"
 
-        # Upload both timestamped and latest blobs
+        # Upload latest.json and timestamped file
         container_client.upload_blob(
             name=blob_name,
             data=json.dumps(data),
