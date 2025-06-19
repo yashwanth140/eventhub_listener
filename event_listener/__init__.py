@@ -19,7 +19,7 @@ def main(event: func.EventHubEvent):
         data = json.loads(body)
 
         # Fetch storage connection and container name from environment
-        connection_string = os.getenv("AzureWebJobsBLOB_CONNECTION_STRING")
+        connection_string = os.getenv("BLOB_CONNECTION_STRING")
         container_name = os.getenv("BLOB_CONTAINER_NAME", "telemetrydata")
 
         # Connect to blob storage
