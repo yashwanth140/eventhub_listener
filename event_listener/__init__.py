@@ -14,7 +14,8 @@ def main(event: func.EventHubEvent):
 
         data = json.loads(body)
 
-        connection_string = os.getenv("BLOB_CONNECTION_STRING")
+        # Updated env var name to match what's configured
+        connection_string = os.getenv("AzureWebJobsBLOB_CONNECTION_STRING")
         container_name = os.getenv("BLOB_CONTAINER_NAME", "telemetrydata")
 
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
@@ -23,7 +24,7 @@ def main(event: func.EventHubEvent):
         timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
         blob_name = f"event_{timestamp}.json"
 
-        # Save latest and timestamped blobs manually
+        # Upload both timestamped and latest blobs
         container_client.upload_blob(
             name=blob_name,
             data=json.dumps(data),
