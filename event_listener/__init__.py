@@ -5,7 +5,8 @@ from datetime import datetime
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
-def main(events: list[func.EventHubEvent]):
+from typing import List
+def main(events: List[func.EventHubEvent]):
     logging.info("Function triggered with a batch of events.")
 
     try:
