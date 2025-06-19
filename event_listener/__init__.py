@@ -6,7 +6,9 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from typing import List
-def main(events: List[func.EventHubEvent]):
+from azure.functions import EventHubEvent 
+
+def main(events: List[EventHubEvent]): 
     logging.info("Function triggered with a batch of events.")
 
     try:
@@ -28,7 +30,6 @@ def main(events: List[func.EventHubEvent]):
                 timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S%f")[:-3]
                 blob_name = f"event_{timestamp}.json"
 
-                # Upload event file
                 container_client.upload_blob(
                     name=blob_name,
                     data=json.dumps(data),
@@ -36,7 +37,6 @@ def main(events: List[func.EventHubEvent]):
                     content_settings=ContentSettings(content_type="application/json")
                 )
 
-                # Update latest.json for live feed
                 container_client.upload_blob(
                     name="latest.json",
                     data=json.dumps(data),
