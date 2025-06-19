@@ -2,18 +2,11 @@
   "bindings": [
     {
       "type": "eventHubTrigger",
-      "name": "event",
+      "name": "events",
       "direction": "in",
       "eventHubName": "telemetry-stream",
       "connection": "EVENTHUB_CONNECTION_STRING",
       "consumerGroup": "$Default"
-    },
-    {
-      "type": "blob",
-      "name": "outputBlob",
-      "path": "telemetrydata/latest.json",
-      "connection": "BLOB_CONNECTION_STRING",
-      "direction": "out"
     }
   ],
   "scriptFile": "__init__.py"
