@@ -8,7 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'release.zip'
 
 jobs:
   build:
@@ -27,12 +27,18 @@ jobs:
 
       - name: Install dependencies to local package folder
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt --target=".python_packages/lib/site-packages"
 
-      - name: Zip artifact for deployment
+      - name: Create deployment zip
         run: |
-          zip -r release.zip . -x '*.git*' '*.venv*' '*.github*'
+          mkdir staging
+          cp host.json requirements.txt staging/
+          cp -r .python_packages staging/
+          cp -r event_listener staging/
+          cd staging
+          zip -r ../release.zip .
+          cd ..
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -53,9 +59,6 @@ jobs:
         with:
           name: python-app
 
-      - name: Unzip build
-        run: unzip release.zip
-
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -63,9 +66,8 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DB37BED5AEF54EF4842DE18818535411 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5600650451384C4E8EF3E57CA1574A6F }}
 
-      - name: Deploy to Azure Function App
-        uses: Azure/functions-action@v1
+      - name: Deploy with zip package
+        uses: azure/webapps-deploy@v2
         with:
           app-name: 'kafkaeventblob'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          scm-do-build-during-deployment: false  # <-- Ensures zip deployment works
+          package: 'release.zip'
