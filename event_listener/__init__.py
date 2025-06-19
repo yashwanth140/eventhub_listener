@@ -5,7 +5,7 @@ from datetime import datetime
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
-def main(event: func.EventHubEvent, outputBlob: func.Out[str]):
+def main(event: func.EventHubEvent):
     logging.info("Function triggered with a single event.")
 
     try:
@@ -14,11 +14,6 @@ def main(event: func.EventHubEvent, outputBlob: func.Out[str]):
 
         data = json.loads(body)
 
-        # Write to latest.json using output binding
-        outputBlob.set(json.dumps(data))
-        logging.info(" latest.json updated.")
-
-        # Write full backup file manually
         connection_string = os.getenv("BLOB_CONNECTION_STRING")
         container_name = os.getenv("BLOB_CONTAINER_NAME", "telemetrydata")
 
@@ -28,13 +23,22 @@ def main(event: func.EventHubEvent, outputBlob: func.Out[str]):
         timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
         blob_name = f"event_{timestamp}.json"
 
+        # Save latest and timestamped blobs manually
         container_client.upload_blob(
             name=blob_name,
             data=json.dumps(data),
             overwrite=True,
             content_settings=ContentSettings(content_type="application/json")
         )
-        logging.info(f" Uploaded full event: {blob_name}")
+
+        container_client.upload_blob(
+            name="latest.json",
+            data=json.dumps(data),
+            overwrite=True,
+            content_settings=ContentSettings(content_type="application/json")
+        )
+
+        logging.info("Uploaded %s and updated latest.json", blob_name)
 
     except Exception as e:
-        logging.error(" Function error: %s", str(e))
+        logging.error("Function error: %s", str(e))
